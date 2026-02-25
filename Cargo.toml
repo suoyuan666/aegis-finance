@@ -1,0 +1,14 @@
+[package]
+name = "aegis-finance"
+version = "0.1.0"
+edition = "2024"
+authors = ["suoyuan <suoyuan666@s5n.xyz>"]
+description = "a cross-platform, privacy-first, and absolutely secure core logic library for personal finance management"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+
+[dependencies]
+argon2 = "0.5.3"
+hex = "0.4.3"
+rusqlite = { version = "0.38.0", features = ["bundled", "bundled-sqlcipher"] }
+zeroize = "1.8.2"
