@@ -1,3 +1,7 @@
+pub struct Category {
+    pub name: String,
+}
+
 pub struct Transaction {
     pub id: String,
     pub amount: i64,
