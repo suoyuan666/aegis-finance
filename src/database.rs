@@ -7,7 +7,7 @@ use argon2::{
 };
 use zeroize::Zeroize;
 
-struct AegisDB {
+pub struct AegisDB {
     conn: Connection,
 }
 
@@ -20,7 +20,7 @@ impl Drop for SecretGuard<'_> {
 }
 
 #[derive(Debug)]
-enum DBError {
+pub enum DBError {
     SaltError(String),
     HashError(String),
     SQLError(rusqlite::Error),
@@ -69,7 +69,7 @@ impl AegisDB {
         Ok(db)
     }
 
-    fn init(&self) -> Result<()> {
+    pub fn init(&self) -> Result<()> {
         self.conn.execute("PRAGMA foreign_keys = ON", ())?;
 
         self.conn.execute(
