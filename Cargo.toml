@@ -12,3 +12,17 @@ argon2 = "0.5.3"
 hex = "0.4.3"
 rusqlite = { version = "0.38.0", features = ["bundled", "bundled-sqlcipher"] }
 zeroize = "1.8.2"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+
+cast_possible_truncation = "deny"
+cast_possible_wrap = "deny"
+cast_lossless = "deny"
+cast_sign_loss = "deny"
+indexing_slicing = "deny"
+float_cmp = "deny"
+float_cmp_const = "deny"
+arithmetic_side_effects = "deny"
+
+missing_errors_doc = "allow"

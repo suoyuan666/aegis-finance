@@ -19,6 +19,12 @@ impl Drop for SecretGuard<'_> {
     }
 }
 
+impl SecretGuard<'_> {
+    fn as_bytes(&self) -> &[u8] {
+        self.0.as_bytes()
+    }
+}
+
 #[derive(Debug)]
 pub enum DBError {
     SaltError(String),
@@ -35,9 +41,9 @@ impl From<rusqlite::Error> for DBError {
 impl std::fmt::Display for DBError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            DBError::SaltError(e) => write!(f, "salt error: {}", e),
-            DBError::HashError(e) => write!(f, "hash password error: {}", e),
-            DBError::SQLError(e) => write!(f, "rusqlite error: {}", e),
+            DBError::SaltError(e) => write!(f, "salt error: {e}",),
+            DBError::HashError(e) => write!(f, "hash password error: {e}",),
+            DBError::SQLError(e) => write!(f, "rusqlite error: {e}",),
         }
     }
 }
@@ -45,14 +51,14 @@ impl std::fmt::Display for DBError {
 impl AegisDB {
     pub fn new(path: &str, raw_input: &mut String, salt: &str) -> Result<Self, DBError> {
         // Using Argon2id algorithmic variants by default
-        let _password_guard = SecretGuard(raw_input);
+        let password_guard = SecretGuard(raw_input);
 
         let argon2 = Argon2::default();
         let salt_obj = SaltString::from_b64(salt)
-            .map_err(|e| DBError::SaltError(format!("invalid salt format: {}", e)))?;
+            .map_err(|e| DBError::SaltError(format!("invalid salt format: {e}")))?;
         let password_hash = argon2
-            .hash_password(_password_guard.0.as_bytes(), &salt_obj)
-            .map_err(|e| DBError::HashError(format!("failed to compute password hash: {}", e)))?;
+            .hash_password(password_guard.as_bytes(), &salt_obj)
+            .map_err(|e| DBError::HashError(format!("failed to compute password hash: {e}")))?;
 
         let hash_output = password_hash.hash.ok_or_else(|| {
             DBError::HashError("failed to extract output bytes from hash".to_string())
