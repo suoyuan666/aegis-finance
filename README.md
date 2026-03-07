@@ -8,7 +8,7 @@
 
 This crate serves as the **headless engine** for a bookkeeping application. It handles data modeling, local encrypted storage, and business logic. It is designed to be decoupled from the UI, making it suitable for integration with ative desktop apps or CLI tools.
 
-## 🛡️ Security Architecture
+## Security Architecture
 
 Security and privacy are the foundational pillars of `aegis-finance`. We do not rely on "security through obscurity." Instead, we employ industry-standard cryptographic primitives to ensure your financial data remains yours alone.
 
@@ -26,25 +26,22 @@ We take memory safety seriously.
 *   **Zero-Knowledge Handling:** The master password and derived keys are treated as sensitive secrets.
 *   **Immediate Cleanup:** Utilizing the `zeroize` crate, sensitive memory regions (containing passwords or keys) are overwritten with zeros immediately after the database connection is established. This prevents secrets from lingering in RAM or leaking into swap/core dumps.
 
-## 🧩 Modules & Status
+## Modules & Status
 
 | Module | Description | Status |
 | :--- | :--- | :--- |
-| **Models** | Core data structures (Transactions, Accounts, etc.) with serialization support. | ✅ **Completed** |
-| **Database** | SQLite wrapper with SQLCipher encryption and CRUD operations. | ✅ **Completed** |
-| **Crypto** | Argon2id key derivation and Zeroize memory management logic. | ✅ **Completed** |
-| **API** | Facade layer exposed to external consumers. | 🚧 **In Progress** |
-| **Sync** | E2EE Cloud Synchronization (WebDAV/Git repository). | ⏳ **Planned / WIP** |
+| **Models** | Core data structures (Transactions, Accounts, etc.) with serialization support. | **Completed** |
+| **Database** | SQLite wrapper with SQLCipher encryption and CRUD operations. | **Completed** |
+| **Crypto** | Argon2id key derivation and Zeroize memory management logic. | **Completed** |
+| **Sync** | E2EE Cloud Synchronization (WebDAV/Git repository). | **WIP** |
 
-> **Current Focus:** We are currently implementing the **WebDAV** synchronization logic. The goal is to support encrypted data sync across platforms without relying on proprietary cloud services.
-
-## 🤝 Contributing
+## Contributing
 
 This project is built by a system developer for those who care deeply about privacy.
 *   Issues and Pull Requests are welcome.
 *   Please ensure `cargo test` passes before submitting.
 
-## 📄 License
+## License
 
 This project is licensed under the **GNU General Public License v3.0 (GPLv3)**.
 See the [LICENSE](LICENSE) file for details.
