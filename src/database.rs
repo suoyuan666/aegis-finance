@@ -44,6 +44,8 @@ impl AegisDB {
             .hash_password(password.as_bytes(), &salt_obj)
             .map_err(|e| DBError::HashError(format!("failed to compute password hash: {e}")))?;
 
+        drop(password);
+
         let hash_output = password_hash.hash.ok_or_else(|| {
             DBError::HashError("failed to extract output bytes from hash".to_string())
         })?;
