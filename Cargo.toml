@@ -11,7 +11,7 @@ license = "GPL-3.0-or-later"
 argon2 = "0.5.3"
 hex = "0.4.3"
 rusqlite = { version = "0.38.0", features = ["bundled", "bundled-sqlcipher"] }
-zeroize = "1.8.2"
+zeroize = { version = "1.8.2", features = ["derive"] }
 
 [lints.clippy]
 pedantic = { level = "warn", priority = -1 }

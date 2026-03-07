@@ -1,28 +1,14 @@
 use crate::models::Transaction;
-use rusqlite::{Connection, Result, params};
 
 use argon2::{
     Argon2,
     password_hash::{PasswordHasher, SaltString},
 };
-use zeroize::Zeroize;
+use rusqlite::{Connection, Result, params};
+use zeroize::{Zeroize, Zeroizing};
 
 pub struct AegisDB {
     conn: Connection,
-}
-
-struct SecretGuard<'a>(&'a mut String);
-
-impl Drop for SecretGuard<'_> {
-    fn drop(&mut self) {
-        self.0.zeroize();
-    }
-}
-
-impl SecretGuard<'_> {
-    fn as_bytes(&self) -> &[u8] {
-        self.0.as_bytes()
-    }
 }
 
 #[derive(Debug)]
@@ -49,15 +35,13 @@ impl std::fmt::Display for DBError {
 }
 
 impl AegisDB {
-    pub fn new(path: &str, raw_input: &mut String, salt: &str) -> Result<Self, DBError> {
+    pub fn new(path: &str, password: Zeroizing<String>, salt: &str) -> Result<Self, DBError> {
         // Using Argon2id algorithmic variants by default
-        let password_guard = SecretGuard(raw_input);
-
         let argon2 = Argon2::default();
         let salt_obj = SaltString::from_b64(salt)
             .map_err(|e| DBError::SaltError(format!("invalid salt format: {e}")))?;
         let password_hash = argon2
-            .hash_password(password_guard.as_bytes(), &salt_obj)
+            .hash_password(password.as_bytes(), &salt_obj)
             .map_err(|e| DBError::HashError(format!("failed to compute password hash: {e}")))?;
 
         let hash_output = password_hash.hash.ok_or_else(|| {
@@ -65,10 +49,10 @@ impl AegisDB {
         })?;
         let mut derived_key = hash_output.as_bytes().to_vec();
         let hex_key = format!("x'{}'", hex::encode(&derived_key));
+        derived_key.zeroize();
 
         let conn = Connection::open(path)?;
         conn.pragma_update(None, "KEY", &hex_key)?;
-        derived_key.zeroize();
 
         let db = Self { conn };
         db.init()?;
@@ -296,15 +280,15 @@ impl AegisDB {
 mod tests {
     use super::*;
 
-    fn setup(password: &mut String) -> AegisDB {
-        AegisDB::new(":memory:", password, "VTVZeW1abDM3QW00OEkwcTRw")
-            .expect("Failed to create in-memory database")
-    }
-
     #[test]
     fn test_create_and_get() {
-        let mut password = String::from("jU68MR2vyIO0vFikfvgw");
-        let storage = setup(&mut password);
+        let storage = AegisDB::new(
+            ":memory:",
+            Zeroizing::new(String::from("jU68MR2vyIO0vFikfvgw")),
+            "VTVZeW1abDM3QW00OEkwcTRw",
+        )
+        .expect("Failed to create in-memory database");
+
         let tx = Transaction {
             id: "tx_123".to_string(),
             amount: 1000,
@@ -336,8 +320,13 @@ mod tests {
 
     #[test]
     fn test_foreign_key_constraint() {
-        let mut password = String::from("test_pass");
-        let storage = setup(&mut password);
+        let storage = AegisDB::new(
+            ":memory:",
+            Zeroizing::new(String::from("jU68MR2vyIO0vFikfvgw")),
+            "VTVZeW1abDM3QW00OEkwcTRw",
+        )
+        .expect("Failed to create in-memory database");
+
         let tx = Transaction {
             id: "tx_err".to_string(),
             amount: 500,
@@ -352,8 +341,12 @@ mod tests {
 
     #[test]
     fn test_update_and_delete() {
-        let mut password = String::from("jU68MR2vyIO0vFikfvgw");
-        let mut storage = setup(&mut password);
+        let mut storage = AegisDB::new(
+            ":memory:",
+            Zeroizing::new(String::from("jU68MR2vyIO0vFikfvgw")),
+            "VTVZeW1abDM3QW00OEkwcTRw",
+        )
+        .expect("Failed to create in-memory database");
 
         storage.add_category("Transport").unwrap();
         let mut tx = Transaction {
@@ -384,8 +377,12 @@ mod tests {
 
     #[test]
     fn test_statistics_and_queries() {
-        let mut password = String::from("jU68MR2vyIO0vFikfvgw");
-        let storage = setup(&mut password);
+        let storage = AegisDB::new(
+            ":memory:",
+            Zeroizing::new(String::from("jU68MR2vyIO0vFikfvgw")),
+            "VTVZeW1abDM3QW00OEkwcTRw",
+        )
+        .expect("Failed to create in-memory database");
 
         storage.add_category("Food").unwrap();
         storage.add_category("Salary").unwrap();
@@ -433,8 +430,12 @@ mod tests {
 
     #[test]
     fn test_utilities() {
-        let mut password = String::from("jU68MR2vyIO0vFikfvgw");
-        let storage = setup(&mut password);
+        let storage = AegisDB::new(
+            ":memory:",
+            Zeroizing::new(String::from("jU68MR2vyIO0vFikfvgw")),
+            "VTVZeW1abDM3QW00OEkwcTRw",
+        )
+        .expect("Failed to create in-memory database");
 
         storage
             .add_category("Food")
